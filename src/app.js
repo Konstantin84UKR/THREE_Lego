@@ -28,9 +28,9 @@ const matCapTexture3 = textureloader.load("/MatCap/clay.jpg")
 
 
 
-// const geometryTorus = new THREE.TorusGeometry(10, 3, 16, 100);
+const geometryTorus = new THREE.TorusGeometry(10, 3, 16, 100);
 // const geometryTorus = new THREE.TorusKnotGeometry(10, 3, 100, 16);
-const geometryTorus = new THREE.BoxGeometry(50,50, 50);
+// const geometryTorus = new THREE.BoxGeometry(50,50, 50);
 const materialTorus = new THREE.MeshBasicMaterial({ color: 0x008800, side: THREE.DoubleSide });
 const torus = new THREE.Mesh(geometryTorus, materialTorus);
 torus.geometry.computeBoundingBox();
@@ -44,8 +44,15 @@ scene.add(torus);
 // scene.add(helper);
 
 //box
+let groupLego = new THREE.Group();
+let sizeLego = 2;
+let s = 0.90;
+
+const geometryBox = new THREE.BoxGeometry(sizeLego * s, sizeLego * s, sizeLego * s);
+const materialBox = new THREE.MeshMatcapMaterial({ color: 0xffffff, matcap: matCapTexture3 });
 
 updateLego();
+scene.add(groupLego);
 
 ///
 const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
@@ -90,13 +97,13 @@ const clock = new THREE.Clock()
 
 const tick = () => {
     const elapsedTime = clock.getElapsedTime()
-
+    const getDelta =  clock.getDelta();
     // Update controls
     controls.update()
 
     // update the picking ray with the camera and pointer position
-    torus.rotateX(elapsedTime * 0.1)
-    // updateLego();
+    // torus.rotateX(elapsedTime * 0.1)
+    updateLego(elapsedTime);
     // }
 
     // Render
@@ -120,10 +127,18 @@ function onPointerMove(event) {
 
 }
 
-function updateLego() {
+function updateLego(elapsedTime = 0) {
     
     //box
+    torus.geometry.rotateY(0.005)
+    torus.geometry.rotateX(0.005)
     torus.geometry.computeBoundingBox();
+
+    // const box = new THREE.Box3();
+    // box.copy(torus.geometry.boundingBox).applyMatrix4(torus.matrixWorld);
+
+    // const helper = new THREE.Box3Helper(box, 0xffff00);
+    // scene.add(helper);
 
     let boundingX = torus.geometry.boundingBox.min.x;
     let boundingY = torus.geometry.boundingBox.min.y;
@@ -134,23 +149,22 @@ function updateLego() {
     let lY = torus.geometry.boundingBox.max.y - torus.geometry.boundingBox.min.y;
     let lZ = torus.geometry.boundingBox.max.z - torus.geometry.boundingBox.min.z;
 
-    let cell = 12
-    let stepX = lX / cell;
+    let cell = 16
+   
+    let stepZ = Math.floor(lZ / cell);
+    let stepX = Math.floor(lX / cell);
+    let stepY = Math.floor(lY / cell);
 
-
-
-
-    ///
-
-    let sizeLego = 2;
-    let stepZ = Math.floor(lZ / sizeLego);
-
+    stepX = 2
+    
+    let legoBox;
+    let legoBoxIndex = 0;
 
     for (let i = 0; i < cell; i++) {
 
         for (let j = 0; j < cell; j++) {
 
-            let origin = new Vector3(boundingX + stepX * i + sizeLego, boundingY + stepX * j + sizeLego, boundingZ + 50);
+            let origin = new Vector3(boundingX + stepX * i + sizeLego, boundingY + stepX * j + sizeLego, boundingZ + 120);
             let target = new Vector3(0, 0, -1);
 
 
@@ -159,25 +173,37 @@ function updateLego() {
             const intersects = raycaster.intersectObject(torus);
 
             if (intersects.length > 0) {
-                console.log(intersects[0].object.name);
+            
+                let lineLength = Math.abs(intersects[0].point.z - intersects[1].point.z);
 
-                for (let index = 0; index < intersects.length; index++) {
-                    let s = 0.95;
-                    const geometryBox = new THREE.BoxGeometry(sizeLego * s, sizeLego * s, sizeLego * s);
-                    const materialBox = new THREE.MeshMatcapMaterial({ color: 0xffffff, wireframe: false, matcap: matCapTexture3 });
-                    const cube = new THREE.Mesh(geometryBox, materialBox);
-                    cube.position.set(intersects[index].point.x, intersects[index].point.y, Math.floor(intersects[index].point.z) - Math.floor((intersects[index].point.z % sizeLego)));
-                    scene.add(cube);
-
-                    console.log("point.z = " + Math.floor(intersects[index].point.z) - Math.floor((intersects[index].point.z % sizeLego)));
+                for (let index = 0; index < lineLength; index = index + stepX) {
+                
+                    legoBox = groupLego.children[legoBoxIndex];
+                    if (!legoBox){
+                        legoBox = new THREE.Mesh(geometryBox, materialBox);
+                        groupLego.add(legoBox);
+                    }else{
+                        let t =4;
+                    }
+                
+                    legoBox.position.set(intersects[0].point.x, intersects[0].point.y, Math.floor(intersects[0].point.z - index));
+                    legoBoxIndex++;
+                    legoBox.visible = true;
                 }
-
+                
+            
 
             }
         }
 
 
     }
+
+    for (let index = legoBoxIndex; index < groupLego.children.length; index++) {
+        const element = groupLego.children[index];
+        element.visible = false;
+    }
+   
 
     // for (let index = 0; index < lZ; index = index + 1) {
 
