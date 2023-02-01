@@ -28,100 +28,24 @@ const matCapTexture3 = textureloader.load("/MatCap/clay.jpg")
 
 
 
-// const geometryTorus = new THREE.TorusGeometry(3, 1, 16, 100);
-const geometryTorus = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+// const geometryTorus = new THREE.TorusGeometry(10, 3, 16, 100);
+// const geometryTorus = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+const geometryTorus = new THREE.BoxGeometry(50,50, 50);
 const materialTorus = new THREE.MeshBasicMaterial({ color: 0x008800, side: THREE.DoubleSide });
 const torus = new THREE.Mesh(geometryTorus, materialTorus);
 torus.geometry.computeBoundingBox();
 torus.name = "torus";
 scene.add(torus);
 
-const box = new THREE.Box3();
-box.copy(torus.geometry.boundingBox).applyMatrix4(torus.matrixWorld);
+// const box = new THREE.Box3();
+// box.copy(torus.geometry.boundingBox).applyMatrix4(torus.matrixWorld);
 
-const helper = new THREE.Box3Helper(box, 0xffff00);
-scene.add(helper);
+// const helper = new THREE.Box3Helper(box, 0xffff00);
+// scene.add(helper);
 
 //box
 
-let boundingX = torus.geometry.boundingBox.min.x;
-let boundingY = torus.geometry.boundingBox.min.y;
-let boundingZ = torus.geometry.boundingBox.min.z;
-
-
-let lX = torus.geometry.boundingBox.max.x - torus.geometry.boundingBox.min.x;
-let lY = torus.geometry.boundingBox.max.y - torus.geometry.boundingBox.min.y;
-let lZ = torus.geometry.boundingBox.max.z - torus.geometry.boundingBox.min.z;
-
-let cell = 12
-let stepX = lX / cell;
-
-
-// const geometryBox = new THREE.BoxGeometry(1, 1, 1);
-// const materialBox = new THREE.MeshBasicMaterial({ color: 0xFF0f00 });
-// const cube = new THREE.Mesh(geometryBox, materialBox);
-// cube.position.set(boundingX + 0.5, boundingY + 0.5, boundingZ + 0.5);
-// scene.add(cube);
-
-// const geometryBox2 = new THREE.BoxGeometry(1, 1, 1);
-// const materialBox2 = new THREE.MeshBasicMaterial({ color: 0x000fff });
-// const cube2 = new THREE.Mesh(geometryBox2, materialBox2);
-// cube2.position.set(boundingX + 0.5, boundingY + 0.5, boundingZ + 2.5);
-// scene.add(cube2);
-
-///
-
-let sizeLego = 1;
-let stepZ = Math.floor(lZ / sizeLego);
-
-// for (let l = 0; l < lZ; l = l + stepZ) {
-
-    for (let i = 0; i < cell; i++) {
-
-        for (let j = 0; j < cell; j++) {
-
-            let origin = new Vector3(boundingX + stepX * i + sizeLego, boundingY + stepX * j + sizeLego, boundingZ + 50);
-            let target = new Vector3(0, 0, -1);
-
-
-            raycaster.set(origin, target);
-        
-            const intersects = raycaster.intersectObject(torus);
-
-            if (intersects.length > 0) {
-                console.log(intersects[0].object.name);
-
-                for (let index = 0; index < intersects.length; index++) {
-            
-                const geometryBox = new THREE.BoxGeometry(sizeLego, sizeLego, sizeLego);
-                const materialBox = new THREE.MeshBasicMaterial({ color: 0xff88f00 });
-                const cube = new THREE.Mesh(geometryBox, materialBox);
-                cube.position.set(intersects[index].point.x, intersects[index].point.y, Math.floor(intersects[index].point.z));
-                scene.add(cube);
-                }
-
-            
-            }
-        }
-
-
-    }
-
-    for (let index = 0; index < lZ; index++) {
-       
-        const geometryBox2 = new THREE.BoxGeometry(sizeLego, sizeLego, sizeLego);
-        const materialBox2 = new THREE.MeshBasicMaterial({ color: 0x000fff });
-        const cube2 = new THREE.Mesh(geometryBox2, materialBox2);
-        cube2.position.set(boundingX, boundingY, boundingZ + index);
-        scene.add(cube2);
-    }
-
-
-
-
-// }
-torus.visible = false
-
+updateLego();
 
 ///
 const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
@@ -171,45 +95,8 @@ const tick = () => {
     controls.update()
 
     // update the picking ray with the camera and pointer position
-    // torus.rotateX(elapsedTime * 0.01)
-    
-    // for (let i = 0; i < cell; i++) {
-
-    //     for (let j = 0; j < cell; j++) {
-
-    //         let origin = new Vector3(boundingX + step * i + 0.5, boundingY + step * j + 0.5, boundingZ + 6);
-    //         let target = new Vector3(0, 0, -1);
-
-
-    //         raycaster.set(origin, target);
-    //         // raycaster.set(new Vector3(boundingX + step * i + 0.5, boundingY + step * j + 0.5, boundingZ + 6), new Vector3(boundingX + step * i + 0.5, boundingY + step * j + 0.5, -1));
-
-
-    //         const intersects = raycaster.intersectObject(torus);
-
-    //         if (intersects.length > 0) {
-    //             console.log(intersects[0].object.name);
-
-    //             // const geometryBox = new THREE.BoxGeometry(0.6, 0.6, 0.6);
-    //             // const materialBox = new THREE.MeshBasicMaterial({ color: 0xff88f00 });
-    //             // const cube = new THREE.Mesh(geometryBox, materialBox);
-    //             // cube.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
-    //             // scene.add(cube);
-    //         }
-
-    //         // const geometryBox = new THREE.BoxGeometry(0.1, 0.1, 0.1);
-    //         // const materialBox = new THREE.MeshBasicMaterial({ color: 0xFF0f00 });
-    //         // const cube = new THREE.Mesh(geometryBox, materialBox);
-    //         // cube.position.set(target.x, target.y, target.z);
-    //         // scene.add(cube);
-
-    //         // const geometryBox2 = new THREE.BoxGeometry(0.1, 0.1, 0.1);
-    //         // const materialBox2 = new THREE.MeshBasicMaterial({ color: 0x000fff });
-    //         // const cube2 = new THREE.Mesh(geometryBox2, materialBox2);
-    //         // cube2.position.set(origin.x, origin.y, origin.z);
-    //         // scene.add(cube2);
-
-    //     }
+    torus.rotateX(elapsedTime * 0.1)
+    // updateLego();
     // }
 
     // Render
@@ -230,5 +117,77 @@ function onPointerMove(event) {
 
     pointer.x = (event.clientX / sizes.width) * 2 - 1;
     pointer.y = - (event.clientY / sizes.height) * 2 + 1;
+
+}
+
+function updateLego() {
+    
+    //box
+    torus.geometry.computeBoundingBox();
+
+    let boundingX = torus.geometry.boundingBox.min.x;
+    let boundingY = torus.geometry.boundingBox.min.y;
+    let boundingZ = torus.geometry.boundingBox.min.z;
+
+
+    let lX = torus.geometry.boundingBox.max.x - torus.geometry.boundingBox.min.x;
+    let lY = torus.geometry.boundingBox.max.y - torus.geometry.boundingBox.min.y;
+    let lZ = torus.geometry.boundingBox.max.z - torus.geometry.boundingBox.min.z;
+
+    let cell = 12
+    let stepX = lX / cell;
+
+
+
+
+    ///
+
+    let sizeLego = 2;
+    let stepZ = Math.floor(lZ / sizeLego);
+
+
+    for (let i = 0; i < cell; i++) {
+
+        for (let j = 0; j < cell; j++) {
+
+            let origin = new Vector3(boundingX + stepX * i + sizeLego, boundingY + stepX * j + sizeLego, boundingZ + 50);
+            let target = new Vector3(0, 0, -1);
+
+
+            raycaster.set(origin, target);
+
+            const intersects = raycaster.intersectObject(torus);
+
+            if (intersects.length > 0) {
+                console.log(intersects[0].object.name);
+
+                for (let index = 0; index < intersects.length; index++) {
+                    let s = 0.95;
+                    const geometryBox = new THREE.BoxGeometry(sizeLego * s, sizeLego * s, sizeLego * s);
+                    const materialBox = new THREE.MeshMatcapMaterial({ color: 0xffffff, wireframe: false, matcap: matCapTexture3 });
+                    const cube = new THREE.Mesh(geometryBox, materialBox);
+                    cube.position.set(intersects[index].point.x, intersects[index].point.y, Math.floor(intersects[index].point.z) - Math.floor((intersects[index].point.z % sizeLego)));
+                    scene.add(cube);
+
+                    console.log("point.z = " + Math.floor(intersects[index].point.z) - Math.floor((intersects[index].point.z % sizeLego)));
+                }
+
+
+            }
+        }
+
+
+    }
+
+    // for (let index = 0; index < lZ; index = index + 1) {
+
+    //     const geometryBox2 = new THREE.BoxGeometry(sizeLego, sizeLego, sizeLego);
+    //     const materialBox2 = new THREE.MeshBasicMaterial({ color: 0x000fff });
+    //     const cube2 = new THREE.Mesh(geometryBox2, materialBox2);
+    //     cube2.position.set(boundingX, boundingY, boundingZ + index);
+    //     scene.add(cube2);
+    // }
+
+    torus.visible = false
 
 }
