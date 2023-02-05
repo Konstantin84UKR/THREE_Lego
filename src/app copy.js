@@ -2,8 +2,6 @@
 import * as THREE from 'three'
 import { Vector3 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-
 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
@@ -17,20 +15,13 @@ let planeIntersect = new THREE.Vector3();
 
 //Texture 
 const textureloader = new THREE.TextureLoader();
-const matCapTexture = textureloader.load("/MatCap/w2.jpg")
+const matCapTexture = textureloader.load("/MatCap/green.jpg")
 const matCapTexture3 = textureloader.load("/MatCap/clay.jpg")
 
 /**
  * Object
  */
-const loader = new GLTFLoader();
-// let meshLego;
-let sizeLego = 1;
-let s = 0.98;
-let cell = 32;
-let stepX = 1;
-
-const loadedData = await loader.loadAsync('/models/lego.glb');
+//MeshMatcapMaterial
 
 // const geometryTorus = new THREE.TorusGeometry(10, 3, 16, 100);
  const geometryTorus = new THREE.TorusKnotGeometry(10, 3, 50, 16);
@@ -49,48 +40,12 @@ scene.add(torus);
 
 //box
 let groupLego = new THREE.Group();
-let dummy = new THREE.Object3D();
-// let sizeLego = 2;
-// let s = 0.95;
-// let cell = 16;
+let sizeLego = 1;
+let s = 0.95;
+let cell = 32;
 
-// const geometryLego = new THREE.BoxGeometry(sizeLego * s, sizeLego * s, sizeLego * s);
-
-const geometryLego = loadedData.scene.children[0].geometry; 
-geometryLego.rotateX(Math.PI * -0.5);
-geometryLego.scale(sizeLego * s, sizeLego * s, sizeLego * s);
-const materialLego = new THREE.MeshMatcapMaterial({ color: 0xffffff, matcap: matCapTexture });
-
-let countLego = cell * cell * cell;
-let meshLego = new THREE.InstancedMesh(geometryLego, materialLego, countLego);
-meshLego.instanceMatrix.setUsage(THREE.DynamicDrawUsage); // will be updated every frame
-
-const red = new THREE.Color(0xff0000);
-const yellow = new THREE.Color(0xffff00);
-const green = new THREE.Color(0x00ff00);
-const blue = new THREE.Color(0x0000ff);
-
-for (let index = 0; index < countLego; index++) {
-    
-    const c = Math.random();
-    let color;
-    if (c <=0.3){
-        color = red;
-    } else if (c <= 0.6){
-        color = yellow;
-    } else if (c <= 0.8) {
-        color = blue;
-    }else{
-        color = green;
-    }
-
-    meshLego.setColorAt(index, color);
-}
-meshLego.instanceColor.needsUpdate = true;
-
-groupLego.add(meshLego);
-
-torus.geometry.rotateX(1);
+const geometryBox = new THREE.BoxGeometry(sizeLego * s, sizeLego * s, sizeLego * s);
+const materialBox = new THREE.MeshMatcapMaterial({ color: 0xffffff, matcap: matCapTexture3 });
 
 updateLego();
 scene.add(groupLego);
@@ -144,12 +99,13 @@ const tick = () => {
 
     // update the picking ray with the camera and pointer position
     // torus.rotateX(elapsedTime * 0.1)
-    //    updateLego(elapsedTime);
+    // updateLego(elapsedTime);
     // }
 
     // Render
     renderer.render(scene, camera)
     
+
     // Call tick again on the next frame
     window.requestAnimationFrame(tick)
 }
@@ -170,8 +126,8 @@ function onPointerMove(event) {
 function updateLego(elapsedTime = 0) {
     
     //box
-    torus.geometry.rotateY(0.01);
-    torus.geometry.rotateX(0.01);
+    torus.geometry.rotateY(0.01)
+    torus.geometry.rotateX(0.01)
     torus.geometry.computeBoundingBox();
 
     // const box = new THREE.Box3();
@@ -190,13 +146,14 @@ function updateLego(elapsedTime = 0) {
     let lZ = torus.geometry.boundingBox.max.z - torus.geometry.boundingBox.min.z;
 
     // let cell = 16
+   
+    let stepZ = Math.floor(lZ / cell);
+    let stepX = Math.floor(lX * sizeLego / cell);
+    let stepY = Math.floor(lY / cell);
 
-    // let stepZ = Math.floor(lZ / cell);
-    // let stepX = Math.floor(lX * sizeLego / cell);
-    // let stepY = Math.floor(lY / cell);
-
-    // stepX = 1;
+    stepX = 1
     
+    let legoBox;
     let legoBoxIndex = 0;
 
     for (let i = 0; i < cell; i++) {
@@ -206,25 +163,32 @@ function updateLego(elapsedTime = 0) {
             let origin = new Vector3(boundingX + stepX * i + sizeLego, boundingY + stepX * j + sizeLego, boundingZ + 120);
             let target = new Vector3(0, 0, -1);
 
+
             raycaster.set(origin, target);
 
             const intersects = raycaster.intersectObject(torus);
 
             if (intersects.length > 0) {
-
-                for (let sprite = 0; sprite < intersects.length; sprite += 2 ) {
+            
+                for (let sprite = 0; sprite <= intersects.length/2; sprite += 2 ) {
                     
                     let lineLength = Math.floor(Math.abs(intersects[sprite].point.z - intersects[sprite+1].point.z));
 
-                    for (let index = 0; index <= lineLength; index = index + stepX) {
+                    for (let index = 0; index < lineLength; index = index + stepX) {
+
+                        legoBox = groupLego.children[legoBoxIndex];
+                        if (!legoBox) {
+                            legoBox = new THREE.Mesh(geometryBox, materialBox);
+                            groupLego.add(legoBox);
+                        } else {
+                            let t = 4;
+                        }
 
                         let positionZ = Math.floor(intersects[sprite].point.z - index) - (Math.floor(intersects[sprite].point.z - index) % sizeLego);
-                        dummy.position.set(intersects[sprite].point.x, intersects[sprite].point.y, positionZ);
-                        dummy.visible = true;
-                        dummy.updateMatrix();
-
-                        meshLego.setMatrixAt(legoBoxIndex, dummy.matrix);
+                        legoBox.position.set(intersects[sprite].point.x, intersects[sprite].point.y, positionZ);
+                        console.log(positionZ)
                         legoBoxIndex++;
+                        legoBox.visible = true;
                     } 
                 }
 
@@ -232,11 +196,21 @@ function updateLego(elapsedTime = 0) {
         }        
     }
 
-    for (let index = legoBoxIndex; index < countLego; index++) {
-        meshLego.setMatrixAt(index, dummy.matrix);       
+    for (let index = legoBoxIndex; index < groupLego.children.length; index++) {
+        const element = groupLego.children[index];
+        element.visible = false;
     }
+   
 
-    meshLego.instanceMatrix.needsUpdate = true;
+    // for (let index = 0; index < lZ; index = index + 1) {
+
+    //     const geometryBox2 = new THREE.BoxGeometry(sizeLego, sizeLego, sizeLego);
+    //     const materialBox2 = new THREE.MeshBasicMaterial({ color: 0x000fff });
+    //     const cube2 = new THREE.Mesh(geometryBox2, materialBox2);
+    //     cube2.position.set(boundingX, boundingY, boundingZ + index);
+    //     scene.add(cube2);
+    // }
+
     torus.visible = false
 
 }
