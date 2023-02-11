@@ -43,6 +43,8 @@ scene.add(torus);
 // const helper = new THREE.Box3Helper(box, 0xffff00);
 // scene.add(helper);
 
+
+
 //box
 let legoGridSize = 20;
 const geometryBox2 = new THREE.BoxGeometry(0.9, 0.9, 0.9);
