@@ -103,7 +103,7 @@ const tick = () => {
 
     // update the picking ray with the camera and pointer position
     // torus.rotateX(elapsedTime * 0.1)
-    updateLego(elapsedTime);
+    //updateLego(elapsedTime);
     // }
 
     // Render
